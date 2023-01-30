@@ -1,22 +1,28 @@
-import { Link, useSearchParams } from "react-router-dom";
-async function checkUser() {
-  console.log("YEP THIS IS SOMETHING");
-  try {
-    //   console.log('req sent');
-    let req = await fetch("http://localhost:5000/currentUser");
-    const res = await req.text();
-    //   console.log(res);
-    console.log(res);
-    // return res;
-  } catch (error) {
-    console.log(error);
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+const isLoggedIn = async () => {
+  let req = await fetch("http://localhost:5000/currentUser", {
+        credentials: 'include'
+  });
+  let res = await req.json();
+  // console.log(res["uid"]);
+  if (res.hasOwnProperty("uid")) {
+    return true;
   }
+  return false;
 }
 const Login = () => {
-  checkUser();
-  let [getSearchParams, searchParams, setSearchParams] = useSearchParams();
+  const navigation = useNavigate();
+  useEffect(() => {
+    isLoggedIn().then(e => {
+      if (e)
+      {
+        navigation('/');
+        }
+    })
+  });
+  let [getSearchParams] = useSearchParams();
   let error = getSearchParams.get("error");
-  console.log(error);
   return (
     <>
       <form

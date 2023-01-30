@@ -1,6 +1,28 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+const isLoggedIn = async () => {
+  let req = await fetch("http://localhost:5000/currentUser", {
+        credentials: 'include'
+  });
+  let res = await req.json();
+  // console.log(res["uid"]);
+  if (res.hasOwnProperty("uid")) {
+    return true;
+  }
+  return false;
+}
 
 const SignUp = () => {
+  const navigation = useNavigate();
+  useEffect(() => {
+    isLoggedIn().then(e => {
+      if (e)
+      {
+        navigation('/');
+        }
+    })
+  });
+
   return (
     <>
       <form

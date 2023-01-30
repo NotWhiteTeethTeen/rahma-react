@@ -24,13 +24,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
 # main landing page
 
-CORS(app)
-@app.route('/endpoint')
-def api():
-    # print(request)
-    data = jsonify({"ibrahim":"bynekak"})
-    return data
-
+CORS(app, supports_credentials=True)
 # @app.route( '/api/fridges')
 # def fridge():
 #     objects_num, labels, img, bnd_box, cnfdce = rahmah_makan_vision.get_objects_num_with_labels()
@@ -42,7 +36,7 @@ def api():
 #     if objects_num > 6:
 #         usage = 3
 
-#     #usage 
+#     #usage
 #     #1 corresponds to not full
 #     #2 corresponds to almost full
 #     #3 corresponds to completely full
@@ -53,21 +47,18 @@ def api():
 #         usage = usage
 #     )
 
+
 @app.route('/login', methods=["POST"])
 def login():
     if session.get('uid'):
-        return redirect('http://localhost:3000/?uid='+session.get('uid'))
+        return redirect('http://localhost:3000/')
     try:
-        print(request.form["mail"])
-        print(request.form["pass"])
         data = {
             'email': request.form["mail"],
             "password": request.form["pass"],
             "returnSecureToken": "true"
         }
-        print(data)
         submit = r.post(config['USER_SIGN_IN'], data=data)
-        print(submit)
         if submit.status_code != 200:
             submit = submit.json()
             if submit['error']['message'] == 'INVALID_PASSWORD':
@@ -84,9 +75,10 @@ def login():
             session['uid'] = auth.get_user_by_email(
                 submit.json()["email"]).uid
             print(session.get('uid'))
-            return redirect('http://localhost:3000/?uid='+session.get('uid'))
+            return redirect('http://localhost:3000/')
     except Exception as e:
         return str(e)
+
 
 @app.route('/signup', methods=["POST"])
 def signup():
@@ -95,10 +87,13 @@ def signup():
     try:
         auth.create_user(
             email=request.form.get('mail'),
-            password=request.form.get('pass'))
+            password=request.form.get('pass'),
+            display_name=request.form.get('name')
+        )
     except Exception as e:
         url = "http://localhost:3000/register/sign-up?error="+str(e)
-        return  redirect(url)
+        return redirect(url)
+
 
 @app.route('/reset', methods=["POST"])
 def reset():
@@ -109,29 +104,35 @@ def reset():
         if response.status_code == 400:
             if response.json()["error"]["message"] == "EMAIL_NOT_FOUND":
                 err = "The email is not found"
-                data = jsonify({"err":err})
+                data = jsonify({"err": err})
                 return data
         else:
             return redirect('/')
+
+
 @app.route('/logout', methods=["GET"])
 def logout():
     if session.get('uid'):
         session.pop('uid', None)
     return redirect('/login')
 
+
 @app.route('/currentUser')
 def user():
-    print(session.get('id'))
+    print(request.headers)
+    print(session.get('uid'))
     if session.get('uid'):
+        user = auth.get_user(session.get('uid'))
         data = jsonify({
-                # "user": auth.get_user(session.get('uid')), 
-                "uid": session.get('uid')
-                })
+            "uid": user.uid,
+            "email": user.email,
+            "display_name": user.display_name
+        })
         return data
     else:
-        print("NOT WORKING PROPERLY")
-        data = jsonify({"user":None})
+        data = jsonify({})
         return data
+
 
 if __name__ == "__main__":
     app.run(debug=True)
