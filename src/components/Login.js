@@ -1,9 +1,9 @@
 import { Link, useSearchParams } from "react-router-dom";
-async function sendRequest() {
+async function checkUser() {
   console.log("YEP THIS IS SOMETHING");
   try {
     //   console.log('req sent');
-    let req = await fetch("http://localhost:5000/endpoint");
+    let req = await fetch("http://localhost:5000/currentUser");
     const res = await req.text();
     //   console.log(res);
     console.log(res);
@@ -13,7 +13,7 @@ async function sendRequest() {
   }
 }
 const Login = () => {
-  sendRequest();
+  checkUser();
   let [getSearchParams, searchParams, setSearchParams] = useSearchParams();
   let error = getSearchParams.get("error");
   console.log(error);

@@ -21,61 +21,72 @@ db = firestore.client()
 # else:
 #     print(u'No such document!')
 app = Flask(__name__)
-CORS(app)
 app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
 # main landing page
 
+CORS(app)
 @app.route('/endpoint')
 def api():
     # print(request)
     data = jsonify({"ibrahim":"bynekak"})
     return data
 
-@app.route( '/api/fridges')
-def fridge():
-    return "Something"
+# @app.route( '/api/fridges')
+# def fridge():
+#     objects_num, labels, img, bnd_box, cnfdce = rahmah_makan_vision.get_objects_num_with_labels()
+#     usage = 0
+#     if objects_num <= 4 and objects_num >= 0:
+#         usage = 1
+#     if objects_num > 4 and objects_num <= 6:
+#         usage = 2
+#     if objects_num > 6:
+#         usage = 3
 
+#     #usage 
+#     #1 corresponds to not full
+#     #2 corresponds to almost full
+#     #3 corresponds to completely full
 
+#     return jsonify(
+#         objects_num = objects_num,
+#         labels = labels,
+#         usage = usage
+#     )
 
 @app.route('/login', methods=["POST"])
 def login():
     if session.get('uid'):
-        print(session.get('uid'))
-        return redirect('http://localhost:3000/')
-    if request.method == "POST":
-        try:
-            print(request.form["mail"])
-            print(request.form["pass"])
-            data = {
-                'email': request.form["mail"],
-                "password": request.form["pass"],
-                "returnSecureToken": "true"
-            }
-            print(data)
-            submit = r.post(config['USER_SIGN_IN'], data=data)
-            print(submit)
-            if submit.status_code != 200:
-                submit = submit.json()
-                if submit['error']['message'] == 'INVALID_PASSWORD':
-                    err = "The password is wrong"
-                elif submit['error']['message'] == 'EMAIL_NOT_FOUND':
-                    err = "Email does not exist"
-                elif submit['error']['message'] == 'USER_DISABLED':
-                    err = "The account associated with this email has been disabled"
-                elif submit['error']['message'] == 'INVALID_EMAIL':
-                    err = "Please enter a valid email"
-                url = "http://localhost:3000/register/login?error="+err
-                return redirect(url)
-            else:
-                session['uid'] = auth.get_user_by_email(
-                    submit["email"]).uid
-                print(session.get('uid'))
-                return redirect('http://localhost:3000/')
-        except Exception as e:
-            return str(e)
-    else:
-        return ""
-
+        return redirect('http://localhost:3000/?uid='+session.get('uid'))
+    try:
+        print(request.form["mail"])
+        print(request.form["pass"])
+        data = {
+            'email': request.form["mail"],
+            "password": request.form["pass"],
+            "returnSecureToken": "true"
+        }
+        print(data)
+        submit = r.post(config['USER_SIGN_IN'], data=data)
+        print(submit)
+        if submit.status_code != 200:
+            submit = submit.json()
+            if submit['error']['message'] == 'INVALID_PASSWORD':
+                err = "The password is wrong"
+            elif submit['error']['message'] == 'EMAIL_NOT_FOUND':
+                err = "Email does not exist"
+            elif submit['error']['message'] == 'USER_DISABLED':
+                err = "The account associated with this email has been disabled"
+            elif submit['error']['message'] == 'INVALID_EMAIL':
+                err = "Please enter a valid email"
+            url = "http://localhost:3000/register/login?error="+err
+            return redirect(url)
+        else:
+            session['uid'] = auth.get_user_by_email(
+                submit.json()["email"]).uid
+            print(session.get('uid'))
+            return redirect('http://localhost:3000/?uid='+session.get('uid'))
+    except Exception as e:
+        return str(e)
 
 @app.route('/signup', methods=["POST"])
 def signup():
@@ -110,11 +121,17 @@ def logout():
 
 @app.route('/currentUser')
 def user():
+    print(session.get('id'))
     if session.get('uid'):
-        print(auth.get_user(session.get('uid')))
-        return " "
+        data = jsonify({
+                # "user": auth.get_user(session.get('uid')), 
+                "uid": session.get('uid')
+                })
+        return data
     else:
-        return None
+        print("NOT WORKING PROPERLY")
+        data = jsonify({"user":None})
+        return data
 
 if __name__ == "__main__":
     app.run(debug=True)
