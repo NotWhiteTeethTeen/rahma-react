@@ -2,7 +2,17 @@ import { Link, NavLink } from "react-router-dom";
 import MyButton from "./MyButton";
 import HamburgerIcon from "../images/hamburger.png";
 import { useState } from "react";
-
+const isLoggedIn = async () => {
+  let req = await fetch("http://localhost:5000/currentUser", {
+        credentials: 'include'
+  });
+  let res = await req.json();
+  // console.log(res["uid"]);
+  if (res.hasOwnProperty("uid")) {
+    return true;
+  }
+  return false;
+}
 
 const Navbar = () => {
 
